@@ -15,7 +15,7 @@ pipeline {
             steps {
                 git branch: 'main', 
                     url: 'https://github.com/shreyashsingrupkar/SpringBootMicoservices.git',
-                    credentialsId: 'github-token' // replace with your Jenkins GitHub credential ID
+                    credentialsId: 'jenkins-access' // replace with your Jenkins GitHub credential ID
             }
         }
 
