@@ -1,0 +1,59 @@
+pipeline {
+    agent any
+
+    environment {
+        // Docker image name
+        IMAGE_NAME = "eureka-server"
+        // Container name
+        CONTAINER_NAME = "eureka-server"
+        // Eureka server port
+        PORT = "8761"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', 
+                    url: 'https://github.com/shreyashsingrupkar/SpringBootMicoservices.git',
+                    credentialsId: 'github-token' // replace with your Jenkins GitHub credential ID
+            }
+        }
+
+        stage('Build Eureka Server') {
+            steps {
+                dir('eureka-server') {
+                    // For Windows agent, use bat instead of sh
+                    bat 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                dir('eureka-server') {
+                    bat "docker build -t ${IMAGE_NAME}:latest ."
+                }
+            }
+        }
+
+        stage('Deploy Docker Container') {
+            steps {
+                // Stop & remove existing container if running
+                bat """
+                    docker stop ${CONTAINER_NAME} || exit 0
+                    docker rm ${CONTAINER_NAME} || exit 0
+                    docker run -d -p ${PORT}:8761 --name ${CONTAINER_NAME} ${IMAGE_NAME}:latest
+                """
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Eureka Server built and deployed successfully!"
+        }
+        failure {
+            echo "Pipeline failed. Check logs!"
+        }
+    }
+}
