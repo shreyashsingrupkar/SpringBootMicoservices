@@ -3,6 +3,8 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "eureka-server:latest"
+        CONTAINER_NAME = "eureka-server"
+        APP_PORT = "8761"
     }
 
     stages {
@@ -16,7 +18,7 @@ pipeline {
         stage('Build with Maven') {
             steps {
                 dir('eureka-server') {
-                    echo "Building Eureka Server..."
+                    echo "🔧 Building Eureka Server with Maven..."
                     sh 'chmod +x mvnw'
                     sh './mvnw clean package -DskipTests'
                 }
@@ -27,7 +29,7 @@ pipeline {
             steps {
                 dir('eureka-server') {
                     script {
-                        echo "Building Docker Image..."
+                        echo "🐳 Building Docker Image..."
                         sh "docker build -t ${DOCKER_IMAGE} ."
                     }
                 }
@@ -36,17 +38,32 @@ pipeline {
 
         stage('Verify Docker Image') {
             steps {
+                echo "🔍 Verifying Docker Image..."
                 sh "docker images | grep eureka-server"
+            }
+        }
+
+        stage('Deploy on Docker') {
+            steps {
+                script {
+                    echo "🚀 Deploying Eureka Server container..."
+                    // Stop & remove old container if running
+                    sh "docker stop ${CONTAINER_NAME} || true"
+                    sh "docker rm ${CONTAINER_NAME} || true"
+
+                    // Run new container
+                    sh "docker run -d -p ${APP_PORT}:8761 --name ${CONTAINER_NAME} ${DOCKER_IMAGE}"
+                }
             }
         }
     }
 
     post {
         success {
-            echo "✅ Eureka Server build and Docker image created successfully!"
+            echo "✅ Eureka Server built, Dockerized, and deployed successfully!"
         }
         failure {
-            echo "❌ Build failed! Please check the logs."
+            echo "❌ Build failed! Check logs for details."
         }
     }
 }
