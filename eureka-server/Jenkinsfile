@@ -17,6 +17,7 @@ pipeline {
             steps {
                 dir('eureka-server') {
                     echo "Building Eureka Server..."
+                    sh 'chmod +x mvnw'
                     sh './mvnw clean package -DskipTests'
                 }
             }
