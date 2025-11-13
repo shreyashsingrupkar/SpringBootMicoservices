@@ -19,7 +19,7 @@ pipeline {
             steps {
                 dir('eureka-server') {
                     echo "Building Eureka Server with Maven..."
-                    bat 'mvnw.cmd clean package
+                    bat 'mvnw.cmd clean package'
                 }
             }
         }
@@ -27,10 +27,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 dir('eureka-server') {
-                    script {
-                        echo "Building Docker Image..."
-                        sh "docker build -t ${DOCKER_IMAGE} ."
-                    }
+                    echo "Building Docker Image..."
+                    bat "docker build -t %DOCKER_IMAGE% ."
                 }
             }
         }
@@ -38,7 +36,7 @@ pipeline {
         stage('Verify Docker Image') {
             steps {
                 echo "Verifying Docker Image..."
-                sh "docker images | grep eureka-server"
+                bat "docker images"
             }
         }
 
@@ -46,12 +44,15 @@ pipeline {
             steps {
                 script {
                     echo "Deploying Eureka Server container..."
-                    // Stop & remove old container if running
-                    sh "docker stop ${CONTAINER_NAME} || true"
-                    sh "docker rm ${CONTAINER_NAME} || true"
+
+                    // Stop old container (ignore error if not running)
+                    bat """
+                    docker stop %CONTAINER_NAME% || echo Container not running
+                    docker rm %CONTAINER_NAME% || echo No container to remove
+                    """
 
                     // Run new container
-                    sh "docker run -d -p ${APP_PORT}:8761 --name ${CONTAINER_NAME} ${DOCKER_IMAGE}"
+                    bat "docker run -d -p %APP_PORT%:8761 --name %CONTAINER_NAME% %DOCKER_IMAGE%"
                 }
             }
         }
