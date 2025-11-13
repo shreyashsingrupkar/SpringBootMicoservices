@@ -43,17 +43,13 @@ pipeline {
         stage('Deploy on Docker') {
             steps {
                 script {
-                    echo "Deploying Eureka Server container..."
-
-                    // Stop old container (ignore error if not running)
-                    bat """
-                    docker stop %CONTAINER_NAME% || echo Container not running
-                    docker rm %CONTAINER_NAME% || echo No container to remove
-                    """
-
-                    // Run new container
-                    bat "docker run -d -p %APP_PORT%:8761 --name %CONTAINER_NAME% %DOCKER_IMAGE%"
-                }
+            echo "Deploying Eureka Server container..."
+            powershell '''
+                docker stop eureka-server -ErrorAction SilentlyContinue
+                docker rm eureka-server -ErrorAction SilentlyContinue
+                docker run -d -p 8761:8761 --name eureka-server eureka-server:latest
+            '''
+        }
             }
         }
     }
