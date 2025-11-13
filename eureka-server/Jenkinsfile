@@ -19,8 +19,7 @@ pipeline {
             steps {
                 dir('eureka-server') {
                     echo "Building Eureka Server with Maven..."
-                    sh 'chmod +x mvnw'
-                    sh './mvnw clean package -DskipTests'
+                    bat 'mvnw.cmd clean package
                 }
             }
         }
