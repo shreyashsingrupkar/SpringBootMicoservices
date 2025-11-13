@@ -1,5 +1,5 @@
 # Use OpenJDK base image
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk-jammy
 
 # Copy jar file from target
 COPY target/*.jar app.jar
