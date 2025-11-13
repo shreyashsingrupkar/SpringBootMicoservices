@@ -2,28 +2,22 @@ pipeline {
     agent any
 
     environment {
-        // Docker image name
-        IMAGE_NAME = "eureka-server"
-        // Container name
-        CONTAINER_NAME = "eureka-server"
-        // Eureka server port
-        PORT = "8761"
+        DOCKER_IMAGE = "eureka-server:latest"
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
-                git branch: 'main', 
-                    url: 'https://github.com/shreyashsingrupkar/SpringBootMicoservices.git',
-                    credentialsId: 'jenkins-access' // replace with your Jenkins GitHub credential ID
+                git branch: 'main',
+                    url: 'https://github.com/shreyashsingrupkar/SpringBootMicoservices.git'
             }
         }
 
-        stage('Build Eureka Server') {
+        stage('Build with Maven') {
             steps {
                 dir('eureka-server') {
-                    // For Windows agent, use bat instead of sh
-                    bat 'mvn clean package -DskipTests'
+                    echo "Building Eureka Server..."
+                    sh './mvnw clean package -DskipTests'
                 }
             }
         }
@@ -31,29 +25,27 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 dir('eureka-server') {
-                    bat "docker build -t ${IMAGE_NAME}:latest ."
+                    script {
+                        echo "Building Docker Image..."
+                        sh "docker build -t ${DOCKER_IMAGE} ."
+                    }
                 }
             }
         }
 
-        stage('Deploy Docker Container') {
+        stage('Verify Docker Image') {
             steps {
-                // Stop & remove existing container if running
-                bat """
-                    docker stop ${CONTAINER_NAME} || exit 0
-                    docker rm ${CONTAINER_NAME} || exit 0
-                    docker run -d -p ${PORT}:8761 --name ${CONTAINER_NAME} ${IMAGE_NAME}:latest
-                """
+                sh "docker images | grep eureka-server"
             }
         }
     }
 
     post {
         success {
-            echo "Eureka Server built and deployed successfully!"
+            echo "✅ Eureka Server build and Docker image created successfully!"
         }
         failure {
-            echo "Pipeline failed. Check logs!"
+            echo "❌ Build failed! Please check the logs."
         }
     }
 }
