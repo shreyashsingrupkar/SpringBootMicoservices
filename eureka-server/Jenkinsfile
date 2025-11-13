@@ -18,7 +18,7 @@ pipeline {
         stage('Build with Maven') {
             steps {
                 dir('eureka-server') {
-                    echo "🔧 Building Eureka Server with Maven..."
+                    echo "Building Eureka Server with Maven..."
                     sh 'chmod +x mvnw'
                     sh './mvnw clean package -DskipTests'
                 }
@@ -29,7 +29,7 @@ pipeline {
             steps {
                 dir('eureka-server') {
                     script {
-                        echo "🐳 Building Docker Image..."
+                        echo "Building Docker Image..."
                         sh "docker build -t ${DOCKER_IMAGE} ."
                     }
                 }
@@ -38,7 +38,7 @@ pipeline {
 
         stage('Verify Docker Image') {
             steps {
-                echo "🔍 Verifying Docker Image..."
+                echo "Verifying Docker Image..."
                 sh "docker images | grep eureka-server"
             }
         }
@@ -46,7 +46,7 @@ pipeline {
         stage('Deploy on Docker') {
             steps {
                 script {
-                    echo "🚀 Deploying Eureka Server container..."
+                    echo "Deploying Eureka Server container..."
                     // Stop & remove old container if running
                     sh "docker stop ${CONTAINER_NAME} || true"
                     sh "docker rm ${CONTAINER_NAME} || true"
@@ -60,10 +60,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Eureka Server built, Dockerized, and deployed successfully!"
+            echo "Eureka Server built, Dockerized, and deployed successfully!"
         }
         failure {
-            echo "❌ Build failed! Check logs for details."
+            echo "Build failed! Check logs for details."
         }
     }
 }
